@@ -9,9 +9,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environment variables
-.env.dev
-.env.staging
-.env.prod
+.env
 
 # OS generated files
 .DS_Store
@@ -32,3 +30,4 @@ config/config.json
 *.sqlite3
 *.bak
 *.tmp
+/generated/prisma

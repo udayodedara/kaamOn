@@ -1,0 +1,191 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  uuid           String   @unique @default(uuid()) @db.Uuid
+  isDelete       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  displayName    String
+  rating         Float    @default(0)
+  address        String
+  contactNumber  String   @unique
+  email          String   @unique
+  isUserVerified Boolean  @default(false)
+  refreshToken   String?
+  otp            Int?
+  accessToken    String?
+
+  // Relations
+  tasksCreated      Task[]              @relation("CreatedTasks")
+  taskAssigned      Task[]              @relation("AssignedTasks")
+  reviewsAuthored   Review[]            @relation("AuthoredReviews")
+  reviewsReceived   Review[]            @relation("ReceivedReviews")
+  incentiveGiven    ReferralIncentive[] @relation("IncentiveGiven")
+  incentiveReceived ReferralIncentive[] @relation("IncentiveReceived")
+  proposal          Proposal[]
+  wallet            Wallet[]
+
+  @@map("users")
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  uuid        String     @unique @default(uuid()) @db.Uuid
+  isDelete    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  title       String
+  description String
+  baseAmount  Float
+  status      TaskStatus @default(PENDING)
+  completedAt DateTime?
+
+  // Foreign keys
+  creatorId  Int
+  assigneeId Int?
+
+  // Relations
+  creator           User               @relation("CreatedTasks", fields: [creatorId], references: [id])
+  assignee          User?              @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  proposal          Proposal[]
+  review            Review[]
+  transaction       Transaction[]
+  ReferralIncentive ReferralIncentive?
+
+  @@map("tasks")
+}
+
+model Proposal {
+  id             Int      @id @default(autoincrement())
+  uuid           String   @unique @default(uuid()) @db.Uuid
+  isDelete       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  message        String
+  proposedAmount Float
+
+  // Foreign keys
+  taskId Int
+  userId Int
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("proposals")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid()) @db.Uuid
+  isDelete  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  rating    Float
+  comment   String?
+
+  // Foreign keys
+  taskId   Int
+  authorId Int
+  targetId Int
+
+  // Relations
+  task   Task @relation(fields: [taskId], references: [id])
+  author User @relation("AuthoredReviews", fields: [authorId], references: [id])
+  target User @relation("ReceivedReviews", fields: [targetId], references: [id])
+
+  @@map("reviews")
+}
+
+model Wallet {
+  id             Int      @id @default(autoincrement())
+  uuid           String   @unique @default(uuid()) @db.Uuid
+  isDelete       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  balance        Float    @default(0)
+  totalEarned    Float    @default(0)
+  totalSpent     Float    @default(0)
+  totalWithdrawn Float    @default(0)
+  lockedBalance  Float    @default(0)
+
+  // Foreign keys
+  userId Int
+
+  // Relations
+  user        User          @relation(fields: [userId], references: [id])
+  transaction Transaction[]
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id            Int              @id @default(autoincrement())
+  uuid          String           @unique @default(uuid()) @db.Uuid
+  isDelete      Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  amount        Float
+  type          TransactionTypes @default(PENDING)
+  paymentMethod String
+
+  // Foreign keys
+  walletId Int
+  taskId   Int
+
+  // Relations
+  task   Task   @relation(fields: [taskId], references: [id])
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@map("transactions")
+}
+
+model ReferralIncentive {
+  id        Int      @id @default(autoincrement())
+  uuid      String   @unique @default(uuid()) @db.Uuid
+  isDelete  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  amount    Float
+
+  // Foreign keys
+  referrerId     Int
+  referredUserId Int
+  taskId         Int @unique
+
+  // Relations
+  referrer     User @relation("IncentiveGiven", fields: [referrerId], references: [id])
+  referredUser User @relation("IncentiveReceived", fields: [referredUserId], references: [id])
+  task         Task @relation(fields: [taskId], references: [id])
+
+  @@map("referral_incentive")
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+}
+
+enum TransactionTypes {
+  FAILED
+  PENDING
+  PROCESSING
+  REJECTED
+  SUCCESS
+}
