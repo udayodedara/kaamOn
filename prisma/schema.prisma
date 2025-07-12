@@ -20,12 +20,14 @@ model User {
   isDelete       Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  displayName    String
+  firstName      String
+  lastName       String
   rating         Float    @default(0)
   address        String
   contactNumber  String   @unique
   email          String   @unique
   isUserVerified Boolean  @default(false)
+  password       String
   refreshToken   String?
   otp            Int?
   accessToken    String?
