@@ -1,13 +1,23 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { Controller, Post, Body } from '@nestjs/common';
+// import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import { UserService } from 'src/user/user.service';
+import { WalletService } from 'src/wallet/wallet.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    // private readonly authService: AuthService,
+    private readonly userService: UserService,
+    private readonly walletService: WalletService
+  ) {}
 
   @Post('register')
-  create(@Body() registerDto: RegisterDto) {
-    return this.authService.registerUser(registerDto);
+  async register(@Body() registerDto: RegisterDto) {
+    const user = await this.userService.create(registerDto);
+
+    await this.walletService.createWallet(user.id);
+
+    return user;
   }
 }
