@@ -13,4 +13,12 @@ async function bootstrap() {
   );
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+bootstrap()
+  .then(() => {
+    // eslint-disable-next-line no-console
+    console.log(`Application is running on: ${process.env.PORT ?? 3000}`);
+  })
+  .catch((err) => {
+    // eslint-disable-next-line no-console
+    console.error('Error starting the application:', err);
+  });
