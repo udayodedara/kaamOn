@@ -41,7 +41,12 @@ export class TransactionService {
     return `This action returns a #${id} transaction`;
   }
 
-  update(id: number, updateTransactionDto: UpdateTransactionDto) {
+  async update(id: number, updateTransactionDto: UpdateTransactionDto) {
+    await this.prisma.transaction.update({
+      where: { id },
+      data: updateTransactionDto
+    });
+
     return `This action updates a #${id} transaction`;
   }
 

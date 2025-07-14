@@ -31,9 +31,22 @@ export class WalletService {
 
   async addBalance(userId: number, amount: number): Promise<Wallet> {
     const wallet = await this.getWalletByUserId(userId);
+
     const updatedWallet = await this.prisma.wallet.update({
       where: { id: wallet.id },
-      data: { balance: wallet.balance + amount }
+      data: {
+        balance: {
+          increment: amount
+        },
+        transaction: {
+          create: {
+            amount,
+            type: 'CREDIT',
+            paymentMethod: 'TOP-UP',
+            status: 'SUCCESS'
+          }
+        }
+      }
     });
 
     return updatedWallet;
