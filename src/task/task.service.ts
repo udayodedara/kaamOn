@@ -10,40 +10,81 @@ import { PrismaService } from 'src/prisma.service';
 @Injectable()
 export class TaskService {
   constructor(private readonly prisma: PrismaService) {}
-  async create(createTaskDto: CreateTaskDto) {
+  async create(userId: number, createTaskDto: CreateTaskDto) {
     const user = await this.prisma.user.findUnique({
-      where: { id: createTaskDto.creatorId }
+      where: { id: userId }
     });
 
     if (!user) {
-      throw new NotFoundException(
-        `User with ID ${createTaskDto.creatorId} not found`
-      );
+      throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
     const wallet = await this.prisma.wallet.findFirst({
-      where: { userId: createTaskDto.creatorId },
-      select: { balance: true }
+      where: { userId: user.id },
+      select: { balance: true, id: true }
     });
+
+    if (!wallet) {
+      throw new NotFoundException(
+        `Wallet for user with ID ${userId} not found`
+      );
+    }
 
     if (wallet && wallet.balance < createTaskDto.baseAmount) {
       throw new BadRequestException(`Insufficient balance in wallet`);
     }
 
-    const task = await this.prisma.task.create({
-      data: {
-        title: createTaskDto.title,
-        description: createTaskDto.description,
-        baseAmount: createTaskDto.baseAmount,
-        creatorId: createTaskDto.creatorId,
-        location: createTaskDto.location
-      }
+    const newTask = await this.prisma.$transaction(async (tx) => {
+      const task = await tx.task.create({
+        data: {
+          title: createTaskDto.title,
+          description: createTaskDto.description,
+          baseAmount: createTaskDto.baseAmount,
+          creatorId: user.id,
+          location: createTaskDto.location
+        }
+      });
+
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: {
+          balance: {
+            decrement: createTaskDto.baseAmount
+          },
+          totalSpent: {
+            increment: createTaskDto.baseAmount
+          }
+        }
+      });
+
+      await tx.transaction.create({
+        data: {
+          amount: createTaskDto.baseAmount,
+          type: 'DEBIT',
+          paymentMethod: 'WALLET',
+          walletId: wallet.id,
+          taskId: task.id,
+          status: 'SUCCESS'
+        }
+      });
+
+      return task;
     });
-    return task;
+
+    return newTask;
   }
 
   findAll() {
-    return `This action returns all task`;
+    const list = this.prisma.task.findMany();
+    return list;
+  }
+
+  async findUserTasks(userId: number) {
+    const list = await this.prisma.task.findMany({
+      where: { creatorId: userId }
+    });
+
+    return list;
   }
 
   findOne(id: number) {

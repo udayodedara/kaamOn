@@ -5,10 +5,12 @@ import {
   Body,
   // Patch,
   Param,
-  Delete
+  Delete,
+  Req
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { IRequest } from 'src/common/interface/request.interface';
 // import { UpdateTaskDto } from './dto/update-task.dto';
 
 @Controller('task')
@@ -16,13 +18,15 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.create(createTaskDto);
+  create(@Req() request: IRequest, @Body() createTaskDto: CreateTaskDto) {
+    const userId = request.user.id;
+    return this.taskService.create(userId, createTaskDto);
   }
 
-  @Get()
-  findAll() {
-    return this.taskService.findAll();
+  @Get('list')
+  findAll(@Req() request: IRequest) {
+    const userId = request.user.id;
+    return this.taskService.findUserTasks(userId);
   }
 
   @Get(':id')

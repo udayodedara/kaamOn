@@ -13,10 +13,6 @@ export class CreateTaskDto {
   @IsNumber()
   baseAmount: number;
 
-  @IsNumber()
-  @IsNotEmpty()
-  creatorId: number;
-
   @IsString()
   @IsNotEmpty()
   location: string;

@@ -30,4 +30,4 @@ config/config.json
 *.sqlite3
 *.bak
 *.tmp
-/generated/prisma
+generated/

@@ -141,21 +141,22 @@ model Wallet {
 }
 
 model Transaction {
-  id            Int              @id @default(autoincrement())
-  uuid          String           @unique @default(uuid()) @db.Uuid
-  isDelete      Boolean          @default(false)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
+  id            Int               @id @default(autoincrement())
+  uuid          String            @unique @default(uuid()) @db.Uuid
+  isDelete      Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   amount        Float
-  type          TransactionTypes @default(PENDING)
+  type          TransactionType
+  status        TransactionStatus @default(PROCESSING)
   paymentMethod String
 
   // Foreign keys
   walletId Int
-  taskId   Int
+  taskId   Int?
 
   // Relations
-  task   Task   @relation(fields: [taskId], references: [id])
+  task   Task?  @relation(fields: [taskId], references: [id])
   wallet Wallet @relation(fields: [walletId], references: [id])
 
   @@map("transactions")
@@ -188,10 +189,15 @@ enum TaskStatus {
   CANCELED
 }
 
-enum TransactionTypes {
+enum TransactionStatus {
   FAILED
   PENDING
   PROCESSING
   REJECTED
   SUCCESS
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
 }

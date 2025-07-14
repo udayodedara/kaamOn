@@ -5,9 +5,16 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
 import { TaskModule } from './task/task.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
-  imports: [AuthModule, UserModule, WalletModule, TaskModule],
+  imports: [
+    AuthModule,
+    UserModule,
+    WalletModule,
+    TaskModule,
+    TransactionModule
+  ],
   controllers: [AppController],
   providers: [AppService]
 })
