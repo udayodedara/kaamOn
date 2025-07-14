@@ -3,13 +3,13 @@ import {
   Get,
   Post,
   Body,
-  // Patch,
   Param,
   Delete,
-  ParseUUIDPipe
+  Req
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { IRequest } from 'src/common/interface/request.interface';
 
 @Controller('user')
 export class UserController {
@@ -25,9 +25,10 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get(':uuid')
-  findOne(@Param('uuid', ParseUUIDPipe) uuid: string) {
-    return this.userService.findOne(uuid);
+  @Get('details')
+  findDetails(@Req() request: IRequest) {
+    const userId = request.user.id;
+    return this.userService.findOne(userId);
   }
 
   // @Patch(':id')

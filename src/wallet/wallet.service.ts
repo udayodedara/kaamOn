@@ -28,4 +28,14 @@ export class WalletService {
 
     return wallet;
   }
+
+  async addBalance(userId: number, amount: number): Promise<Wallet> {
+    const wallet = await this.getWalletByUserId(userId);
+    const updatedWallet = await this.prisma.wallet.update({
+      where: { id: wallet.id },
+      data: { balance: wallet.balance + amount }
+    });
+
+    return updatedWallet;
+  }
 }
