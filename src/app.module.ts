@@ -6,6 +6,11 @@ import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
 import { TaskModule } from './task/task.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { ConfigModule } from '@nestjs/config';
+import config from './config/config';
+import { validate } from './config/env.validation';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
 
 @Module({
   imports: [
@@ -13,9 +18,20 @@ import { TransactionModule } from './transaction/transaction.module';
     UserModule,
     WalletModule,
     TaskModule,
-    TransactionModule
+    TransactionModule,
+    ConfigModule.forRoot({
+      isGlobal: true, // Makes the configuration available globally
+      load: [config],
+      validate
+    })
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard
+    }
+  ]
 })
 export class AppModule {}

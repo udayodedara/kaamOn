@@ -44,7 +44,8 @@ export default tseslint.config(
           tabWidth: 2,
           endOfLine: 'lf'
         }
-      ]
+      ],
+      'no-process-env': 'error'
     }
   }
 );

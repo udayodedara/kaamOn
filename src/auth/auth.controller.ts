@@ -13,6 +13,7 @@ export class AuthController {
     private readonly walletService: WalletService
   ) {}
 
+  @SkipAuth()
   @Post('register')
   async register(@Body() registerDto: RegisterDto) {
     const user = await this.userService.create(registerDto);

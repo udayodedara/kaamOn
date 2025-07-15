@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,12 +12,14 @@ async function bootstrap() {
       forbidNonWhitelisted: true
     })
   );
-  await app.listen(process.env.PORT ?? 3000);
+  const config = app.get(ConfigService);
+  const port = config.get<number>('port');
+  await app.listen(port || 3000);
 }
 bootstrap()
   .then(() => {
     // eslint-disable-next-line no-console
-    console.log(`Application is running on: ${process.env.PORT ?? 3000}`);
+    console.log(`Application is running.`);
   })
   .catch((err) => {
     // eslint-disable-next-line no-console

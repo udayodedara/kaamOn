@@ -10,12 +10,14 @@ import { Request } from 'express';
 import { JwtPayload } from './types/jwt-payload.type';
 import { Reflector } from '@nestjs/core';
 import { SKIP_AUTH_KEY } from 'src/common/decorators/skipAuth.decorator';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly reflector: Reflector
+    private readonly reflector: Reflector,
+    private readonly configService: ConfigService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -33,7 +35,7 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload: JwtPayload = await this.jwtService.verifyAsync(token, {
-        secret: 'your_jwt_secret' // Replace with your actual secret
+        secret: this.configService.get('jwt.secret')
       });
       if (!payload) {
         throw new UnauthorizedException();
